@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>少爷计算器</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div style="display: flex; justify-content: center; align-items: center; width: 100%;">
+                <h1 style="text-align: center; flex: 1;">🚗 少爷的计算器</h1>
+                <div id="userInfo" style="color: white; display: none;">
+                    <span id="userName"></span>
+                    <button id="adminBtn" onclick="showAdminPanel()" style="margin-left: 15px; padding: 5px 12px; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); border-radius: 5px; color: white; cursor: pointer; display: none;">
+                        用户管理
+                    </button>
+                    <button onclick="logout()" style="margin-left: 15px; padding: 5px 12px; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); border-radius: 5px; color: white; cursor: pointer;">
+                        退出登录
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <div class="left-column">
+                <!-- 输入表单 -->
+                <section class="input-section">
+                    <div class="input-header">
+                        <h2>算法：</h2>
+                        <div class="header-controls">
+                            <!-- API选择器 -->
+                            <select id="apiSelector" class="api-selector">
+                                <option value="amap">🗺️ 高德地图</option>
+                                <option value="distanceMatrix">🌐 DistanceMatrix</option>
+                            </select>
+                            <!-- 车辆配置按钮 -->
+                            <button class="vehicle-config-btn" id="vehicleConfigToggle" title="车辆配置">
+                                🚚
+                            </button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="origin">起点位置：</label>
+                        <input type="text" id="origin" placeholder="请输入起点位置名称或地址" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="destination">终点位置：</label>
+                        <input type="text" id="destination" placeholder="请输入终点位置名称或地址" required>
+                    </div>
+
+                    <button id="calculateBtn" class="btn btn-primary">🚀 计算距离</button>
+                    
+                    <!-- 单次计算结果显示在计算模块底部 -->
+                    <div class="single-result-display" id="singleResultDisplay" style="display: none;">
+                        <div class="result-card compact">
+                            <div class="result-item">
+                                <span class="label">起点：</span>
+                                <span class="value" id="originResultInline">暂无数据</span>
+                            </div>
+                            <div class="result-item">
+                                <span class="label">终点：</span>
+                                <span class="value" id="destinationResultInline">暂无数据</span>
+                            </div>
+                            <div class="result-item">
+                                <span class="label">距离：</span>
+                                <span class="value" id="distanceResultInline">暂无数据</span>
+                            </div>
+                            <div class="result-item">
+                                <span class="label">时间：</span>
+                                <span class="value" id="timeResultInline">暂无数据</span>
+                            </div>
+                        </div>
+                        <div class="inline-action-buttons">
+                            <button id="copyInlineBtn" class="btn btn-secondary btn-sm">📋 复制</button>
+                            <button id="saveInlineBtn" class="btn btn-success btn-sm">💾 保存</button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Excel批量处理 -->
+                <section class="excel-section">
+                    <h2>📊 Excel批量处理</h2>
+                    <div class="excel-workflow">
+                        <div class="workflow-step">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <h4>下载模板</h4>
+                                <button class="btn btn-info" id="downloadTemplateBtn">📋 下载Excel模板</button>
+                                <p class="step-desc">下载标准模板，包含必要的表头和示例数据</p>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <h4>导入数据</h4>
+                                <div class="excel-controls">
+                                    <input type="file" id="excelFile" accept=".xlsx,.xls" style="display: none;">
+                                    <button class="btn btn-secondary" onclick="document.getElementById('excelFile').click()">
+                                        📁 选择Excel文件
+                                    </button>
+                                    <div class="selected-file" id="selectedFileInfo" style="display: none;">
+                                        <span class="file-icon">📄</span>
+                                        <span class="file-name" id="selectedFileName"></span>
+                                        <button class="btn btn-sm btn-danger" onclick="clearSelectedFile()">✕</button>
+                                    </div>
+                                    <button class="btn btn-primary" id="importBtn">📥 导入数据</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">3</div>
+                            <div class="step-content">
+                                <h4>批量计算</h4>
+                                <div class="batch-controls">
+                                    <button class="btn btn-success" id="batchCalculateBtn">🚀 开始批量计算</button>
+                                    <button class="btn btn-warning" id="pauseCalculateBtn" style="display: none;">⏸️ 暂停计算</button>
+                                    <button class="btn btn-danger" id="stopCalculateBtn" style="display: none;">⏹️ 停止计算</button>
+                                </div>
+                                <div class="progress-container" id="progressContainer" style="display: none;">
+                                    <div class="progress-info">
+                                        <span id="progressText">准备中...</span>
+                                        <span id="progressPercent">0%</span>
+                                    </div>
+                                    <div class="progress-bar">
+                                        <div class="progress-fill" id="progressFill"></div>
+                                    </div>
+                                    <div class="progress-stats">
+                                        <span>成功: <span id="successCount">0</span></span>
+                                        <span>失败: <span id="failCount">0</span></span>
+                                        <span>总计: <span id="totalCount">0</span></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="workflow-step">
+                            <div class="step-number">4</div>
+                            <div class="step-content">
+                                <h4>导出结果</h4>
+                                <div class="export-controls">
+                                    <button class="btn btn-success" id="exportBtn">📤 导出完整结果</button>
+                                    <button class="btn btn-info" id="exportSummaryBtn">📊 导出汇总报告</button>
+                                    <button class="btn btn-warning" id="clearBtn">🗑️ 清空数据</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+
+            <div class="right-column">
+                <!-- 结果展示面板 - 合并计算结果和批量处理结果 -->
+                <section class="result-section" id="resultSection">
+                    <div class="result-header">
+                        <h2>📊 结果面板</h2>
+                        <div class="result-tabs">
+                            <button class="tab-btn active" id="singleResultTab">单次计算</button>
+                            <button class="tab-btn" id="batchResultTab">批量处理</button>
+                        </div>
+                    </div>
+
+                    <!-- 单次计算结果 -->
+                    <div class="result-content" id="singleResultContent">
+                        <div class="result-card">
+                            <div class="result-item">
+                                <span class="label">起点：</span>
+                                <span class="value" id="originResult">暂无数据</span>
+                            </div>
+                            <div class="result-item">
+                                <span class="label">终点：</span>
+                                <span class="value" id="destinationResult">暂无数据</span>
+                            </div>
+                            <div class="result-item">
+                                <span class="label">行驶距离：</span>
+                                <span class="value" id="distanceResult">暂无数据</span>
+                            </div>
+                            <div class="result-item">
+                                <span class="label">行驶时间：</span>
+                                <span class="value" id="timeResult">暂无数据</span>
+                            </div>
+                            <div class="result-item">
+                                <span class="label">计算时间：</span>
+                                <span class="value" id="timestampResult">暂无数据</span>
+                            </div>
+                        </div>
+                    <div class="action-buttons">
+                        <button id="copyBtn" class="btn btn-secondary">📋 复制结果</button>
+                        <button id="saveBtn" class="btn btn-success">💾 保存到历史</button>
+                        <button id="showHistoryBtn" class="btn btn-info">📊 查看历史记录</button>
+                    </div>
+                    </div>
+
+                    <!-- 批量处理结果 -->
+                    <div class="result-content" id="batchResultContent" style="display: none;">
+                        <div class="batch-summary">
+                            <div class="summary-stats">
+                                <div class="stat-item">
+                                    <span class="stat-label">总计</span>
+                                    <span class="stat-value" id="summaryTotal">0</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label">已完成</span>
+                                    <span class="stat-value" id="summaryCompleted">0</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label">待处理</span>
+                                    <span class="stat-value" id="summaryPending">0</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label">失败</span>
+                                    <span class="stat-value" id="summaryFailed">0</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="batch-table-container">
+                            <table class="batch-result-table">
+                                <thead>
+                                    <tr>
+                                        <th>起点</th>
+                                        <th>终点</th>
+                                        <th>距离</th>
+                                        <th>时间</th>
+                                        <th>状态</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="batchResultTableBody">
+                                    <tr>
+                                        <td colspan="5" class="no-data">暂无批量处理数据</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 历史记录和数据列表 -->
+                <section class="history-section" id="historySection" style="display: none;">
+                    <div class="result-header">
+                        <h2>📋 数据管理</h2>
+                        <div class="result-tabs">
+                            <button class="tab-btn active" id="historyTab">计算历史</button>
+                            <button class="tab-btn" id="dataListTab">数据列表</button>
+                        </div>
+                    </div>
+
+                    <!-- 计算历史内容 -->
+                    <div class="result-content" id="historyContent">
+                        <div class="history-list" id="historyList">
+                        </div>
+                    </div>
+
+                    <!-- 数据列表内容 -->
+                    <div class="result-content" id="dataListContent" style="display: none;">
+                        <div class="table-container">
+                            <table id="dataTable">
+                                <thead>
+                                    <tr>
+                                        <th>起点</th>
+                                        <th>终点</th>
+                                        <th>距离(km)</th>
+                                        <th>时间(分钟)</th>
+                                        <th>计算时间</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="dataTableBody">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <!-- 车辆配置浮动面板 -->
+    <div class="vehicle-config-panel" id="vehicleConfigContent">
+        <div class="vehicle-config-header">
+            <h3>🚚 车辆配置</h3>
+            <button class="close-btn" id="closeVehicleConfig">×</button>
+        </div>
+        <div class="vehicle-config-body">
+            <div class="form-group compact">
+                <label for="powerType">动力类型：</label>
+                <select id="powerType" name="powerType" required>
+                    <option value="gasoline" selected>汽油</option>
+                    <option value="diesel">柴油</option>
+                    <option value="hybrid">油电混动</option>
+                    <option value="electric">纯电动</option>
+                    <option value="pluginHybrid">插混/增程</option>
+                </select>
+            </div>
+
+            <div class="form-group compact">
+                <label for="truckType">货车类型：</label>
+                <select id="truckType" name="truckType" required>
+                    <option value="micro">微型</option>
+                    <option value="light">轻型</option>
+                    <option value="medium">中型</option>
+                    <option value="heavy" selected>重型</option>
+                </select>
+            </div>
+
+            <div class="form-group compact">
+                <label for="etc">ETC缴费：</label>
+                <select id="etc" name="etc" required>
+                    <option value="yes">有ETC</option>
+                    <option value="no" selected>没有ETC</option>
+                </select>
+            </div>
+
+            <div class="form-group compact">
+                <label for="axleCount">轴数：</label>
+                <select id="axleCount" name="axleCount" required>
+                    <option value="2">2轴</option>
+                    <option value="3">3轴</option>
+                    <option value="4" selected>4轴</option>
+                    <option value="5">5轴</option>
+                    <option value="6+">6轴及以上</option>
+                </select>
+            </div>
+
+            <div class="form-group compact">
+                <label for="totalWeight">总重量 (吨)：</label>
+                <input type="number" id="totalWeight" min="0" step="0.01" value="40.00" required>
+            </div>
+
+            <div class="form-group compact">
+                <label for="ratedLoad">核定载重 (吨)：</label>
+                <input type="number" id="ratedLoad" min="0" step="0.01" value="30.00" required>
+            </div>
+
+            <div class="form-group compact">
+                <label for="truckLength">车长 (米)：</label>
+                <input type="number" id="truckLength" min="0" step="0.01" value="14.70" required>
+            </div>
+
+            <div class="form-group compact">
+                <label for="truckWidth">车宽 (米)：</label>
+                <input type="number" id="truckWidth" min="0" step="0.01" value="2.50" required>
+            </div>
+
+            <div class="form-group compact">
+                <label for="truckHeight">车高 (米)：</label>
+                <input type="number" id="truckHeight" min="0" step="0.01" value="4.00" required>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="main.js"></script>
+</body>
+</html>

@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>货车运输距离测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+        }
+        .test-section {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .param-list {
+            list-style: none;
+            padding: 0;
+        }
+        .param-list li {
+            margin: 5px 0;
+            padding: 5px;
+            background: #f5f5f5;
+            border-radius: 3px;
+        }
+        .btn {
+            background: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px 0;
+        }
+        .btn:hover {
+            background: #0056b3;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            background: #e9ecef;
+            border-radius: 5px;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <h1>🚛 货车运输距离计算测试</h1>
+    
+    <div class="test-section">
+        <h2>📋 测试参数配置</h2>
+        <ul class="param-list">
+            <li><strong>货车类型:</strong> 重型</li>
+            <li><strong>轴数:</strong> 4轴</li>
+            <li><strong>总重量:</strong> 40.00吨 → 40000公斤</li>
+            <li><strong>车长:</strong> 14.70米 → 1470厘米</li>
+            <li><strong>车宽:</strong> 2.50米 → 250厘米</li>
+            <li><strong>车高:</strong> 4.00米 → 400厘米</li>
+        </ul>
+    </div>
+
+    <div class="test-section">
+        <h2>📍 测试路线</h2>
+        <ul class="param-list">
+            <li><strong>起点:</strong> 湖南省长沙市长沙县江背镇福田村坦塘组188号赫茗尚仓</li>
+            <li><strong>终点:</strong> 南昌市青山湖区湖坊镇</li>
+        </ul>
+    </div>
+
+    <div class="test-section">
+        <h2>🛣️ 高德地图API参数模拟</h2>
+        <button class="btn" onclick="simulateAmapRequest()">模拟API请求</button>
+        
+        <h3>预期构建的URL参数:</h3>
+        <ul class="param-list">
+            <li><code>strategy=2</code> (货车路线策略)</li>
+            <li><code>cartype=2</code> (货车类型)</li>
+            <li><code>carweight=40000</code> (重量:公斤)</li>
+            <li><code>carheight=400</code> (高度:厘米)</li>
+            <li><code>carwidth=250</code> (宽度:厘米)</li>
+            <li><code>carlength=1470</code> (长度:厘米)</li>
+            <li><code>axlenum=4</code> (轴数)</li>
+        </ul>
+    </div>
+
+    <div class="test-section">
+        <h2>📊 测试结果</h2>
+        <div id="testResult" class="result">点击"模拟API请求"按钮查看结果...</div>
+    </div>
+
+    <div class="test-section">
+        <h2>🔍 实际测试步骤</h2>
+        <ol>
+            <li>打开主应用 <a href="http://localhost:3000/" target="_blank">http://localhost:3000/</a></li>
+            <li>按F12打开开发者工具 → 控制台(Console)</li>
+            <li>确认车辆配置面板参数正确（重型货车）</li>
+            <li>输入测试起点和终点地址</li>
+            <li>点击"计算距离"按钮</li>
+            <li>在控制台中查看详细的调试信息：
+                <ul>
+                    <li>🚚 车辆配置参数</li>
+                    <li>🚛 货车专用参数</li>
+                    <li>📊 完整API响应</li>
+                    <li>🛣️ 路线详情</li>
+                </ul>
+            </li>
+        </ol>
+    </div>
+
+    <script>
+        function simulateAmapRequest() {
+            const resultDiv = document.getElementById('testResult');
+            
+            // 模拟车辆配置
+            const vehicleConfig = {
+                truckType: 'heavy',
+                axleCount: '4',
+                totalWeight: 40.00,
+                truckLength: 14.70,
+                truckWidth: 2.50,
+                truckHeight: 4.00
+            };
+
+            // 构建API请求URL
+            const apiKey = "your_amap_api_key_here";
+            let strategy = '2'; // 货车路线策略
+            
+            let url = `https://restapi.amap.com/v3/direction/driving?key=${apiKey}&origin=模拟坐标&destination=模拟坐标&strategy=${strategy}&extensions=base`;
+
+            // 添加货车专用参数
+            if (vehicleConfig.truckType !== 'micro') {
+                url += `&cartype=2`;
+                url += `&carweight=${vehicleConfig.totalWeight * 1000}`;
+                url += `&carheight=${vehicleConfig.truckHeight * 100}`;
+                url += `&carwidth=${vehicleConfig.truckWidth * 100}`;
+                url += `&carlength=${vehicleConfig.truckLength * 100}`;
+                url += `&axlenum=${vehicleConfig.axleCount === '6+' ? 6 : parseInt(vehicleConfig.axleCount)}`;
+            }
+
+            const result = `🚛 货车运输距离测试 - API请求模拟
+===============================
+
+📡 构建的API URL:
+${url}
+
+🔧 货车专用参数详情:
+- cartype: 2 (货车)
+- carweight: ${vehicleConfig.totalWeight * 1000}公斤
+- carheight: ${vehicleConfig.truckHeight * 100}厘米  
+- carwidth: ${vehicleConfig.truckWidth * 100}厘米
+- carlength: ${vehicleConfig.truckLength * 100}厘米
+- axlenum: ${vehicleConfig.axleCount === '6+' ? 6 : parseInt(vehicleConfig.axleCount)}轴
+
+✅ 参数构建完成！
+
+⚠️ 下一步：在实际应用中验证：
+1. 确认高德地图API密钥正确配置
+2. 检查控制台输出的完整API响应
+3. 验证返回的路线距离是否为货车专用路线`;
+
+            resultDiv.textContent = result;
+        }
+    </script>
+</body>
+</html>

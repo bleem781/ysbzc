@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>重置用户数据 - 少爷计算器</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .reset-card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+        
+        .reset-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .reset-header h1 {
+            color: #4a5568;
+            margin: 0 0 10px 0;
+            font-size: 24px;
+        }
+        
+        .reset-btn {
+            width: 100%;
+            padding: 12px;
+            background: #4299e1;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .reset-btn:hover {
+            background: #3182ce;
+        }
+        
+        .message {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 6px;
+            text-align: center;
+            display: none;
+        }
+        
+        .success {
+            background: #c6f6d5;
+            color: #22543d;
+            border: 1px solid #9ae6b4;
+        }
+        
+        .error {
+            background: #fed7d7;
+            color: #742a2a;
+            border: 1px solid #feb2b2;
+        }
+    </style>
+</head>
+<body>
+    <div class="reset-card">
+        <div class="reset-header">
+            <h1>🔧 重置用户数据</h1>
+            <p>清除本地存储的用户数据并恢复默认用户</p>
+        </div>
+        
+        <button class="reset-btn" onclick="resetUserData()">重置用户数据</button>
+        
+        <div id="successMessage" class="message success">
+            ✅ 用户数据重置成功！默认用户已恢复。
+        </div>
+        
+        <div id="errorMessage" class="message error">
+            ❌ 重置失败，请检查控制台错误信息。
+        </div>
+    </div>
+
+    <script>
+        function resetUserData() {
+            try {
+                // 清除所有本地存储数据
+                localStorage.clear();
+                
+                // 设置默认用户数据
+                const defaultUsers = {
+                    'admin': { 
+                        password: '781000931', 
+                        name: '系统管理员', 
+                        role: 'admin' 
+                    },
+                    'user': { 
+                        password: 'user123', 
+                        name: '普通用户', 
+                        role: 'user' 
+                    },
+                    'guest': { 
+                        password: 'guest123', 
+                        name: '访客用户', 
+                        role: 'guest' 
+                    }
+                };
+                
+                localStorage.setItem('system_users', JSON.stringify(defaultUsers));
+                
+                // 显示成功消息
+                document.getElementById('successMessage').style.display = 'block';
+                document.getElementById('errorMessage').style.display = 'none';
+                
+                console.log('用户数据重置成功！默认用户：');
+                console.log(defaultUsers);
+                
+            } catch (error) {
+                document.getElementById('errorMessage').style.display = 'block';
+                document.getElementById('successMessage').style.display = 'none';
+                console.error('重置失败：', error);
+            }
+        }
+        
+        // 页面加载时显示当前用户数据状态
+        console.log('当前用户数据：', localStorage.getItem('system_users'));
+    </script>
+</body>
+</html>
