@@ -737,8 +737,14 @@ function exportSummaryReport() {
 
     // 只添加已完成的数据，清理格式
     completedData.forEach((item, index) => {
-        // 清理距离和时间数据，去掉单位
-        const cleanDistance = item.distance ? item.distance.replace(' 公里', '') : '';
+        // 清理距离数据：四舍五入取整并去掉单位
+        let cleanDistance = '';
+        if (item.distance) {
+            const distanceValue = parseFloat(item.distance.replace(' 公里', ''));
+            cleanDistance = Math.round(distanceValue); // 四舍五入取整
+        }
+        
+        // 清理时间数据，去掉单位
         const cleanDuration = item.duration ? item.duration.replace(' 分钟', '') : '';
         
         summaryData.push([
@@ -1270,14 +1276,21 @@ function exportExcel() {
 
     // 准备导出数据
     const exportData = [
-        ['起点', '终点', '距离(公里)', '时间(分钟)', '计算时间', '状态']
+        ['起点', '终点', '距离', '时间(分钟)', '计算时间', '状态']
     ];
 
     importedData.forEach(item => {
+        // 处理距离数据：四舍五入取整并去掉公里单位
+        let formattedDistance = '';
+        if (item.distance) {
+            const distanceValue = parseFloat(item.distance.replace(' 公里', ''));
+            formattedDistance = Math.round(distanceValue); // 四舍五入取整
+        }
+        
         exportData.push([
             item.origin,
             item.destination,
-            item.distance || '',
+            formattedDistance,
             item.duration || '',
             item.timestamp || '',
             item.status
